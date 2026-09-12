@@ -1,6 +1,6 @@
 # VITTweaks Installer
 
-$repo = "https://raw.githubusercontent.com/vittweaks/VITTweaks/main/VITTweaks.ps1"
+$repo = "https://raw.githubusercontent.com/vittweaks/VITTweaks/main/vittweaks.ps1"
 
 Write-Host "==========================================" -ForegroundColor Magenta
 Write-Host "           VITTweaks Installer" -ForegroundColor White
