@@ -3,137 +3,174 @@ Add-Type -AssemblyName System.Drawing
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-# Theme
-$bg = [Drawing.Color]::FromArgb(12,12,18)
-$panel = [Drawing.Color]::FromArgb(22,15,35)
-$purple = [Drawing.Color]::FromArgb(140,50,255)
-$text = [Drawing.Color]::White
+$bg = [Drawing.Color]::FromArgb(10,10,18)
+$panel = [Drawing.Color]::FromArgb(20,15,35)
+$purple = [Drawing.Color]::FromArgb(155,60,255)
+$white = [Drawing.Color]::White
 
-$form = New-Object Windows.Forms.Form
+$form = New-Object System.Windows.Forms.Form
 $form.Text = "VITTweaks"
-$form.Size = New-Object Drawing.Size(1150,700)
+$form.Size = New-Object System.Drawing.Size(1150,700)
 $form.StartPosition = "CenterScreen"
 $form.BackColor = $bg
-$form.ForeColor = $text
-$form.FormBorderStyle = "FixedSingle"
-$form.MaximizeBox = $false
+$form.ForeColor = $white
 
 # Sidebar
-$sidebar = New-Object Windows.Forms.Panel
-$sidebar.BackColor = $panel
+$sidebar = New-Object System.Windows.Forms.Panel
 $sidebar.Dock = "Left"
 $sidebar.Width = 220
+$sidebar.BackColor = $panel
 $form.Controls.Add($sidebar)
 
-# Logo
-$logo = New-Object Windows.Forms.Label
+$logo = New-Object System.Windows.Forms.Label
 $logo.Text = "VITTweaks"
-$logo.Font = New-Object Drawing.Font("Segoe UI",22,[Drawing.FontStyle]::Bold)
+$logo.Font = New-Object System.Drawing.Font("Segoe UI",20,[System.Drawing.FontStyle]::Bold)
 $logo.ForeColor = $purple
-$logo.Location = New-Object Drawing.Point(20,20)
+$logo.Location = New-Object System.Drawing.Point(20,20)
 $logo.AutoSize = $true
 $sidebar.Controls.Add($logo)
 
-# Buttons
-$buttons = @("Dashboard","Windows","Registry","Network","CPU","GPU","RAM","Cleanup","Restore")
-
-$y = 90
-foreach($b in $buttons){
-
-    $btn = New-Object Windows.Forms.Button
-    $btn.Text = $b
-    $btn.Size = New-Object Drawing.Size(180,42)
-    $btn.Location = New-Object Drawing.Point(20,$y)
-
-    $btn.FlatStyle = "Flat"
-    $btn.FlatAppearance.BorderSize = 1
-    $btn.FlatAppearance.BorderColor = $purple
-    $btn.BackColor = $bg
-    $btn.ForeColor = $text
-
-    $btn.Add_MouseEnter({
-        $this.BackColor = $purple
-    })
-
-    $btn.Add_MouseLeave({
-        $this.BackColor = $bg
-    })
-
-    $sidebar.Controls.Add($btn)
-    $y += 50
-}
-
-# Main Panel
-$main = New-Object Windows.Forms.Panel
+# Main area
+$main = New-Object System.Windows.Forms.Panel
 $main.Dock = "Fill"
 $main.BackColor = $bg
 $form.Controls.Add($main)
 
-# Title
-$title = New-Object Windows.Forms.Label
+# Pages
+$pages = @{}
+
+function New-Page($name){
+    $p = New-Object System.Windows.Forms.Panel
+    $p.Dock = "Fill"
+    $p.BackColor = $bg
+    $p.Visible = $false
+    $main.Controls.Add($p)
+    $pages[$name] = $p
+}
+
+"Dashboard","Windows","Network","Cleanup","Restore" | ForEach-Object { New-Page $_ }
+
+function Show-Page($name){
+    foreach($p in $pages.Values){ $p.Visible = $false }
+    $pages[$name].Visible = $true
+}
+
+# Dashboard
+$title = New-Object System.Windows.Forms.Label
 $title.Text = "SYSTEM DASHBOARD"
-$title.Font = New-Object Drawing.Font("Segoe UI",24,[Drawing.FontStyle]::Bold)
+$title.Font = New-Object System.Drawing.Font("Segoe UI",24,[System.Drawing.FontStyle]::Bold)
 $title.ForeColor = $purple
-$title.Location = New-Object Drawing.Point(40,30)
+$title.Location = New-Object System.Drawing.Point(40,30)
 $title.AutoSize = $true
-$main.Controls.Add($title)
+$pages["Dashboard"].Controls.Add($title)
 
-# Stats Labels
-$cpu = New-Object Windows.Forms.Label
-$cpu.Font = New-Object Drawing.Font("Segoe UI",16)
-$cpu.Location = New-Object Drawing.Point(40,110)
+$cpu = New-Object System.Windows.Forms.Label
+$cpu.Font = New-Object System.Drawing.Font("Segoe UI",16)
+$cpu.Location = New-Object System.Drawing.Point(40,100)
 $cpu.AutoSize = $true
-$main.Controls.Add($cpu)
+$pages["Dashboard"].Controls.Add($cpu)
 
-$ram = New-Object Windows.Forms.Label
-$ram.Font = New-Object Drawing.Font("Segoe UI",16)
-$ram.Location = New-Object Drawing.Point(40,150)
+$ram = New-Object System.Windows.Forms.Label
+$ram.Font = New-Object System.Drawing.Font("Segoe UI",16)
+$ram.Location = New-Object System.Drawing.Point(40,140)
 $ram.AutoSize = $true
-$main.Controls.Add($ram)
+$pages["Dashboard"].Controls.Add($ram)
 
-$os = New-Object Windows.Forms.Label
-$os.Font = New-Object Drawing.Font("Segoe UI",16)
-$os.Location = New-Object Drawing.Point(40,190)
-$os.AutoSize = $true
-$main.Controls.Add($os)
-
-# Big Action Button
-$boost = New-Object Windows.Forms.Button
-$boost.Text = "⚡ PERFORMANCE MODE"
-$boost.Font = New-Object Drawing.Font("Segoe UI",15,[Drawing.FontStyle]::Bold)
-$boost.Size = New-Object Drawing.Size(320,70)
-$boost.Location = New-Object Drawing.Point(40,270)
-$boost.FlatStyle = "Flat"
-$boost.FlatAppearance.BorderSize = 0
+$boost = New-Object System.Windows.Forms.Button
+$boost.Text = "⚡ Enable Performance Mode"
+$boost.Size = New-Object System.Drawing.Size(320,60)
+$boost.Location = New-Object System.Drawing.Point(40,220)
 $boost.BackColor = $purple
-$boost.ForeColor = $text
-
+$boost.ForeColor = $white
+$boost.FlatStyle = "Flat"
 $boost.Add_Click({
     powercfg /setactive SCHEME_MIN
-    [Windows.Forms.MessageBox]::Show("Performance Mode Applied","VITTweaks")
+    [System.Windows.Forms.MessageBox]::Show("Performance Mode Enabled","VITTweaks")
 })
+$pages["Dashboard"].Controls.Add($boost)
 
-$main.Controls.Add($boost)
+# Windows page
+$w = New-Object System.Windows.Forms.Label
+$w.Text = "Windows Tweaks (Coming Soon)"
+$w.Font = New-Object System.Drawing.Font("Segoe UI",20,[System.Drawing.FontStyle]::Bold)
+$w.ForeColor = $purple
+$w.Location = New-Object System.Drawing.Point(40,40)
+$w.AutoSize = $true
+$pages["Windows"].Controls.Add($w)
 
-# Live Stats
-$timer = New-Object Windows.Forms.Timer
+# Network page
+$n = New-Object System.Windows.Forms.Button
+$n.Text = "Flush DNS"
+$n.Size = New-Object System.Drawing.Size(200,45)
+$n.Location = New-Object System.Drawing.Point(40,80)
+$n.BackColor = $purple
+$n.ForeColor = $white
+$n.FlatStyle = "Flat"
+$n.Add_Click({
+    ipconfig /flushdns | Out-Null
+    [System.Windows.Forms.MessageBox]::Show("DNS Flushed","VITTweaks")
+})
+$pages["Network"].Controls.Add($n)
+
+# Cleanup page
+$c = New-Object System.Windows.Forms.Button
+$c.Text = "Open Temp Folder"
+$c.Size = New-Object System.Drawing.Size(220,45)
+$c.Location = New-Object System.Drawing.Point(40,80)
+$c.BackColor = $purple
+$c.ForeColor = $white
+$c.FlatStyle = "Flat"
+$c.Add_Click({
+    Start-Process $env:TEMP
+})
+$pages["Cleanup"].Controls.Add($c)
+
+# Restore page
+$r = New-Object System.Windows.Forms.Button
+$r.Text = "Create Restore Point"
+$r.Size = New-Object System.Drawing.Size(240,45)
+$r.Location = New-Object System.Drawing.Point(40,80)
+$r.BackColor = $purple
+$r.ForeColor = $white
+$r.FlatStyle = "Flat"
+$r.Add_Click({
+    Enable-ComputerRestore -Drive "C:\" -ErrorAction SilentlyContinue
+    Checkpoint-Computer -Description "VITTweaks Restore" -RestorePointType "MODIFY_SETTINGS"
+    [System.Windows.Forms.MessageBox]::Show("Restore Point Created","VITTweaks")
+})
+$pages["Restore"].Controls.Add($r)
+
+# Sidebar buttons
+$items = @("Dashboard","Windows","Network","Cleanup","Restore")
+$y = 90
+
+foreach($item in $items){
+    $b = New-Object System.Windows.Forms.Button
+    $b.Text = $item
+    $b.Size = New-Object System.Drawing.Size(180,40)
+    $b.Location = New-Object System.Drawing.Point(20,$y)
+    $b.BackColor = $bg
+    $b.ForeColor = $white
+    $b.FlatStyle = "Flat"
+    $b.FlatAppearance.BorderColor = $purple
+    $page = $item
+    $b.Add_Click({ Show-Page $page })
+    $sidebar.Controls.Add($b)
+    $y += 50
+}
+
+# Live stats
+$timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 1000
-
 $timer.Add_Tick({
-
-    $cpuLoad = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
-
-    $osInfo = Get-CimInstance Win32_OperatingSystem
-
-    $used = [math]::Round(($osInfo.TotalVisibleMemorySize-$osInfo.FreePhysicalMemory)/1024)
-    $total = [math]::Round($osInfo.TotalVisibleMemorySize/1024)
-
-    $cpu.Text = "CPU Usage: " + $cpuLoad.ToString("0") + "%"
+    $cpu.Text = "CPU: " + ((Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue.ToString("0")) + "%"
+    $os = Get-CimInstance Win32_OperatingSystem
+    $used = [math]::Round(($os.TotalVisibleMemorySize-$os.FreePhysicalMemory)/1024)
+    $total = [math]::Round($os.TotalVisibleMemorySize/1024)
     $ram.Text = "RAM: $used MB / $total MB"
-    $os.Text = "Windows: " + $osInfo.Caption
-
 })
-
 $timer.Start()
+
+Show-Page "Dashboard"
 
 [System.Windows.Forms.Application]::Run($form)
