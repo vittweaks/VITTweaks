@@ -1,90 +1,134 @@
-Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName PresentationCore
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
-[xml]$xaml=@"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        Title="VITTweaks"
-        Height="650"
-        Width="1050"
-        WindowStartupLocation="CenterScreen"
-        Background="#09090F"
-        Foreground="White">
+[System.Windows.Forms.Application]::EnableVisualStyles()
 
-    <Grid>
+# Theme
+$bg = [Drawing.Color]::FromArgb(12,12,18)
+$panel = [Drawing.Color]::FromArgb(22,15,35)
+$purple = [Drawing.Color]::FromArgb(140,50,255)
+$text = [Drawing.Color]::White
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+$form = New-Object Windows.Forms.Form
+$form.Text = "VITTweaks"
+$form.Size = New-Object Drawing.Size(1150,700)
+$form.StartPosition = "CenterScreen"
+$form.BackColor = $bg
+$form.ForeColor = $text
+$form.FormBorderStyle = "FixedSingle"
+$form.MaximizeBox = $false
 
-        <Border Background="#120020">
-            <StackPanel Margin="15">
+# Sidebar
+$sidebar = New-Object Windows.Forms.Panel
+$sidebar.BackColor = $panel
+$sidebar.Dock = "Left"
+$sidebar.Width = 220
+$form.Controls.Add($sidebar)
 
-                <TextBlock Text="VITTweaks"
-                           FontSize="28"
-                           FontWeight="Bold"
-                           Foreground="#B347FF"
-                           Margin="0,10"/>
+# Logo
+$logo = New-Object Windows.Forms.Label
+$logo.Text = "VITTweaks"
+$logo.Font = New-Object Drawing.Font("Segoe UI",22,[Drawing.FontStyle]::Bold)
+$logo.ForeColor = $purple
+$logo.Location = New-Object Drawing.Point(20,20)
+$logo.AutoSize = $true
+$sidebar.Controls.Add($logo)
 
-                <Button Name="DashboardBtn" Margin="0,8" Height="42">Dashboard</Button>
-                <Button Name="WindowsBtn" Margin="0,8" Height="42">Windows Tweaks</Button>
-                <Button Name="RegistryBtn" Margin="0,8" Height="42">Registry</Button>
-                <Button Name="NetworkBtn" Margin="0,8" Height="42">Network</Button>
-                <Button Name="CleanupBtn" Margin="0,8" Height="42">Cleanup</Button>
-                <Button Name="RestoreBtn" Margin="0,8" Height="42">Restore Point</Button>
+# Buttons
+$buttons = @("Dashboard","Windows","Registry","Network","CPU","GPU","RAM","Cleanup","Restore")
 
-            </StackPanel>
-        </Border>
+$y = 90
+foreach($b in $buttons){
 
-        <Grid Grid.Column="1">
+    $btn = New-Object Windows.Forms.Button
+    $btn.Text = $b
+    $btn.Size = New-Object Drawing.Size(180,42)
+    $btn.Location = New-Object Drawing.Point(20,$y)
 
-            <StackPanel Margin="30">
+    $btn.FlatStyle = "Flat"
+    $btn.FlatAppearance.BorderSize = 1
+    $btn.FlatAppearance.BorderColor = $purple
+    $btn.BackColor = $bg
+    $btn.ForeColor = $text
 
-                <TextBlock Text="SYSTEM DASHBOARD"
-                           FontSize="30"
-                           Foreground="#C66BFF"
-                           FontWeight="Bold"/>
+    $btn.Add_MouseEnter({
+        $this.BackColor = $purple
+    })
 
-                <TextBlock Name="CPU" FontSize="20" Margin="0,25"/>
-                <TextBlock Name="RAM" FontSize="20"/>
-                <TextBlock Name="OS" FontSize="20"/>
+    $btn.Add_MouseLeave({
+        $this.BackColor = $bg
+    })
 
-                <Button Name="BoostBtn"
-                        Content="APPLY PERFORMANCE MODE"
-                        Height="55"
-                        Margin="0,40"
-                        Background="#8A2BE2"
-                        Foreground="White"/>
+    $sidebar.Controls.Add($btn)
+    $y += 50
+}
 
-            </StackPanel>
+# Main Panel
+$main = New-Object Windows.Forms.Panel
+$main.Dock = "Fill"
+$main.BackColor = $bg
+$form.Controls.Add($main)
 
-        </Grid>
+# Title
+$title = New-Object Windows.Forms.Label
+$title.Text = "SYSTEM DASHBOARD"
+$title.Font = New-Object Drawing.Font("Segoe UI",24,[Drawing.FontStyle]::Bold)
+$title.ForeColor = $purple
+$title.Location = New-Object Drawing.Point(40,30)
+$title.AutoSize = $true
+$main.Controls.Add($title)
 
-    </Grid>
+# Stats Labels
+$cpu = New-Object Windows.Forms.Label
+$cpu.Font = New-Object Drawing.Font("Segoe UI",16)
+$cpu.Location = New-Object Drawing.Point(40,110)
+$cpu.AutoSize = $true
+$main.Controls.Add($cpu)
 
-</Window>
-"@
+$ram = New-Object Windows.Forms.Label
+$ram.Font = New-Object Drawing.Font("Segoe UI",16)
+$ram.Location = New-Object Drawing.Point(40,150)
+$ram.AutoSize = $true
+$main.Controls.Add($ram)
 
-$reader = New-Object System.Xml.XmlNodeReader $xaml
-$window = [Windows.Markup.XamlReader]::Load($reader)
+$os = New-Object Windows.Forms.Label
+$os.Font = New-Object Drawing.Font("Segoe UI",16)
+$os.Location = New-Object Drawing.Point(40,190)
+$os.AutoSize = $true
+$main.Controls.Add($os)
 
-$cpu = $window.FindName("CPU")
-$ram = $window.FindName("RAM")
-$os = $window.FindName("OS")
-$boost = $window.FindName("BoostBtn")
+# Big Action Button
+$boost = New-Object Windows.Forms.Button
+$boost.Text = "⚡ PERFORMANCE MODE"
+$boost.Font = New-Object Drawing.Font("Segoe UI",15,[Drawing.FontStyle]::Bold)
+$boost.Size = New-Object Drawing.Size(320,70)
+$boost.Location = New-Object Drawing.Point(40,270)
+$boost.FlatStyle = "Flat"
+$boost.FlatAppearance.BorderSize = 0
+$boost.BackColor = $purple
+$boost.ForeColor = $text
 
-$timer = New-Object Windows.Threading.DispatcherTimer
-$timer.Interval = "0:0:1"
+$boost.Add_Click({
+    powercfg /setactive SCHEME_MIN
+    [Windows.Forms.MessageBox]::Show("Performance Mode Applied","VITTweaks")
+})
+
+$main.Controls.Add($boost)
+
+# Live Stats
+$timer = New-Object Windows.Forms.Timer
+$timer.Interval = 1000
 
 $timer.Add_Tick({
 
-    $cpu.Text = "CPU Usage: " + (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue.ToString("0") + "%"
+    $cpuLoad = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
 
     $osInfo = Get-CimInstance Win32_OperatingSystem
 
-    $used = [math]::Round(($osInfo.TotalVisibleMemorySize - $osInfo.FreePhysicalMemory)/1024)
+    $used = [math]::Round(($osInfo.TotalVisibleMemorySize-$osInfo.FreePhysicalMemory)/1024)
     $total = [math]::Round($osInfo.TotalVisibleMemorySize/1024)
 
+    $cpu.Text = "CPU Usage: " + $cpuLoad.ToString("0") + "%"
     $ram.Text = "RAM: $used MB / $total MB"
     $os.Text = "Windows: " + $osInfo.Caption
 
@@ -92,12 +136,4 @@ $timer.Add_Tick({
 
 $timer.Start()
 
-$boost.Add_Click({
-
-    powercfg /setactive SCHEME_MIN
-
-    [System.Windows.MessageBox]::Show("Performance Mode Applied.","VITTweaks")
-
-})
-
-$window.ShowDialog()
+[System.Windows.Forms.Application]::Run($form)
